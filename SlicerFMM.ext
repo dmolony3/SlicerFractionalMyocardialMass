@@ -7,7 +7,7 @@
 # This is source code manager (i.e. svn)
 scm git
 scmurl https://github.com/dmolony3/SlicerFractionalMyocardialMass
-scmrevision master
+scmrevision main
 
 # list dependencies
 # - These should be names of other modules that have .s4ext files
@@ -25,7 +25,7 @@ homepage https://github.com/dmolony3/SlicerFractionalMyocardialMass
 contributors David Molony (Georgia Heart Institute, Northeast Georgia Health System)
 
 # Match category in the xml description of the module (where it shows up in Modules menu)
-category CT
+category CCTA
 
 # url to icon (png, size 128x128 pixels)
 iconurl https://raw.githubusercontent.com/dmolony3/SlicerFractionalMyocardialMass/main/FMM.png
