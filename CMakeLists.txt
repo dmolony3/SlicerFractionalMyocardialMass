@@ -4,12 +4,12 @@ project(FMM)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
-set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/FMM")
-set(EXTENSION_CATEGORY "Examples")
-set(EXTENSION_CONTRIBUTORS "John Doe (AnyWare Corp.)")
-set(EXTENSION_DESCRIPTION "This is an example of a simple extension")
-set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/FMM.png")
-set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/FMM/Screenshots/1.png")
+set(EXTENSION_HOMEPAGE "https://github.com/dmolony3/SlicerFractionalMyocardialMass")
+set(EXTENSION_CATEGORY "Cardiac")
+set(EXTENSION_CONTRIBUTORS "David Molony (Georgia Heart Institute.)")
+set(EXTENSION_DESCRIPTION "Extension for calculating the fractional myocardial mass and the myocardial mass at risk")
+set(EXTENSION_ICONURL "https://github.com/dmolony3/SlicerFractionalMyocardialMass/blob/main/FMM.png")
+set(EXTENSION_SCREENSHOTURLS "https://github.com/dmolony3/SlicerFractionalMyocardialMass/blob/main/Media/Mesh.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a list or "NA" if no dependencies
 
 #-----------------------------------------------------------------------------
