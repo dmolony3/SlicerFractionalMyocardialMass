@@ -19,8 +19,8 @@ class FMM(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = "FMM"  
-        self.parent.categories = ["Examples"]
+        self.parent.title = "FractionalMyocardialMass"
+        self.parent.categories = ["Cardiac"]
         self.parent.dependencies = []  
         self.parent.contributors = ["David Molony (NGHS)"]  #
         self.parent.helpText = """
