@@ -21,7 +21,7 @@ class FMM(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = "FractionalMyocardialMass"
         self.parent.categories = ["Cardiac"]
-        self.parent.dependencies = []  
+        self.parent.dependencies = []
         self.parent.contributors = ["David Molony (NGHS)"]  #
         self.parent.helpText = """
 This module computes the fractional myocardial mass for an input myocardial volume mesh.
@@ -225,7 +225,7 @@ class FMMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             outputTableNode = self._parameterNode.GetNodeReference("OutputTable")
             slicer.util.showStatusMessage("Segmenting myocardium...")
             slicer.app.processEvents()  # force update
-        
+
             # Compute output
             outputTable, outputMesh = self.logic.segmentMesh(self.ui.inputModelSelector.currentNode(), self.ui.inputLCAMarkupSelector.currentNode(),
                                self.ui.inputRCAMarkupSelector.currentNode(), self.ui.inputMMARMarkupSelector.currentNode(), self.ui.outputTableSelector.currentNode(), self.ui.outputMeshSelector.currentNode())
@@ -249,7 +249,7 @@ class FMMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 outputModelNode.GetDisplayNode().SetActiveScalarName('Ids')
                 slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayout3DTableView)
                 slicer.app.applicationLogic().GetSelectionNode().SetReferenceActiveTableID(outputTableNode.GetID())
-                slicer.app.applicationLogic().PropagateTableSelection()        
+                slicer.app.applicationLogic().PropagateTableSelection()
 
 # FMMLogic
 #
@@ -316,14 +316,14 @@ class FMMLogic(ScriptedLoadableModuleLogic):
 
         # convert child dictionary names to ids
         for groupId, names in childDict.items():
-           childIds = [int(groupDict[name]) for name in names] 
+           childIds = [int(groupDict[name]) for name in names]
            childDict[groupId] = childIds
 
         polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
         polydata.GetPointData().AddArray(group)
         return polydata, groupDict, lengthDict, childDict
-        
+
     def findMMARCenterline(self, centerlinePolydata, MMARPoint):
         """
         Identify pointid and corresponding groupid for the MMAR fiducial point
@@ -338,7 +338,7 @@ class FMMLogic(ScriptedLoadableModuleLogic):
         pointId = locator.FindClosestPoint(MMARPoint)
         groupId = centerlinePolydata.GetPointData().GetArray(0).GetTuple(pointId)[0]
         return pointId, groupId
-        
+
     def addMMARArray(self, polydata, childDict, pointId, groupId):
         """
         Add pointdata array indicating whether the vertex is "at risk"
@@ -364,21 +364,21 @@ class FMMLogic(ScriptedLoadableModuleLogic):
                         mmar.InsertNextTuple([1,])
                     else:
                         mmar.InsertNextTuple([0,])
-                else:   
+                else:
                     mmar.InsertNextTuple([1,])
             else:
                 mmar.InsertNextTuple([0,])
-        
+
         polydata.GetPointData().AddArray(mmar)
 
         return polydata
-        
+
     def voronoi(self, inputModel, polydata):
         """
         Assign pointdata to each mesh point using voronoi algorithm
         """
         kernel = vtk.vtkVoronoiKernel()
-        
+
         nullValue = 0.0
         probeFilter = vtk.vtkPointInterpolator()
         probeFilter.SetInputData(inputModel.GetMesh())
@@ -389,9 +389,9 @@ class FMMLogic(ScriptedLoadableModuleLogic):
         probeFilter.SetNullValue(nullValue)
         probeFilter.Update()
         outputMesh = probeFilter.GetOutput()
-        return outputMesh    
+        return outputMesh
 
-    def computeVolume(self, outputMesh, ids, arrayIdx):        
+    def computeVolume(self, outputMesh, ids, arrayIdx):
         """Compute the volume associated to each id"""
         from statistics import mode
 
@@ -405,9 +405,9 @@ class FMMLogic(ScriptedLoadableModuleLogic):
             groupIds = [outputMesh.GetPointData().GetArray(arrayIdx).GetTuple(id)[0] for id in pointIds]
             groupId = int(mode(groupIds))
             vol[groupId] += cell_vol
-            
+
         return vol
-        
+
     def segmentMesh(self, inputModel, inputLCAMarkup, inputRCAMarkup, inputMMARMarkup, outputTable, outputModel):
         """
         Run the processing algorithm.
@@ -444,11 +444,11 @@ class FMMLogic(ScriptedLoadableModuleLogic):
 
         outputMesh = self.voronoi(inputModel, polydata)
 
-       
+
         # TODO Allow polydata input containing Radius array and return minDiameterCol
         # TODO Allow surface model input and calculate volume/mass for each section
-        
-        num_arrays = outputMesh.GetPointData().GetNumberOfArrays() 
+
+        num_arrays = outputMesh.GetPointData().GetNumberOfArrays()
         groupIdArray = [i for i in range(num_arrays) if outputMesh.GetPointData().GetArrayName(i) == 'Ids'][0]
 
         ids = [outputMesh.GetPointData().GetArray(groupIdArray).GetTuple(i)[0] for i in range(outputMesh.GetPointData().GetArray(groupIdArray).GetNumberOfTuples())]
@@ -471,7 +471,7 @@ class FMMLogic(ScriptedLoadableModuleLogic):
                 volCol.InsertNextTuple([vol[groupId], ])
             else:
                 volCol.InsertNextTuple([0.0],)
-      
+
         outputTable.AddColumn(labelCol)
         outputTable.AddColumn(groupCol)
         outputTable.AddColumn(volCol)
@@ -485,9 +485,9 @@ class FMMLogic(ScriptedLoadableModuleLogic):
             labelCol1.InsertNextValue("Myocardial volume at risk (mm^3)")
             volCol1 = vtk.vtkIntArray()
             volCol1.InsertNextTuple([volMMAR[1] + volMMAR[0], ])
-            volCol1.InsertNextTuple([volMMAR[1], ])      
+            volCol1.InsertNextTuple([volMMAR[1], ])
             MMARTableNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTableNode", "MMAR")
             MMARTableNode.AddColumn(labelCol1)
             MMARTableNode.AddColumn(volCol1)
-        
+
         return outputTable, outputMesh

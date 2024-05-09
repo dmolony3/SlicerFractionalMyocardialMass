@@ -7,9 +7,9 @@ The module serves two functions
 1. Computation of fractional myocardial mass (FMM).
 2. Computation of myocardial mass at risk (MMAR).
 
-The basic functionality requires as input a mesh representing the LV myocardium, left coronary artery centerlines and optionally the right coronary artery centerlines. Since only a portion of the RCA generally feeds the LV myocardium it is good practice to restrict the number of segments used as input. This can be achieved by setting the input RCA centerline to be a distal segment. Only segments under this centerlines tree will be considered for associating segments to the LV myocardium. 
+The basic functionality requires as input a mesh representing the LV myocardium, left coronary artery centerlines and optionally the right coronary artery centerlines. Since only a portion of the RCA generally feeds the LV myocardium it is good practice to restrict the number of segments used as input. This can be achieved by setting the input RCA centerline to be a distal segment. Only segments under this centerlines tree will be considered for associating segments to the LV myocardium.
 
-1. a mesh representing the left ventricle myocardium. 
+1. a mesh representing the left ventricle myocardium.
 2. a markups curve representing the left coronary artery
 3. a markups curve representing the right coronary artery (optional)
 4. a markup point indicating where the stenosis is present
@@ -33,7 +33,7 @@ If you need to manually create the centerlines this can be done through the **ma
 This point is used to identify the MMAR and should be placed at the location of a stenosis. When this is provided as input the MMAR will also be returned as both an array in the mesh and a separate table.
 
 ### Outputs
-The module generates 2 outputs. 
+The module generates 2 outputs.
 
 #### Output table
 This is a table containing the associated volume for each centerline segment. The first colunm contains the name of the centerline segment. The second column is the assoicated id for the centerline. The third column is the volume associated with each centerline segment. The fourth column contains the length of each centerline segment. If a markups fiducial is provided indicating the location of a stenosis a second table called MMAR is automatically generated.
