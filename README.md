@@ -47,4 +47,28 @@ If a markups fiducial is provided indicating the location of a stenosis a second
 
 ![Volumetric Mesh with MMAR](Media/MMAR.png)
 
+### Dependencies
+The following extensions are automatically installed with SlicerFractionalMyocardialMass. Although SlicerFractionalMyocardialMass does not directly rely on these extensions, they provide a the capability for generating the required input data.
 
+SegmentMesher: Creates volumetric mesh of myocardium
+SlicerVMTK: Creates vessel centerlines in expected format.
+
+### Citing
+When citing SlicerFractionalMyocardialMass in your scientific research, please cite this github repository or the following conference abstract
+
+Azarnoosh, J. Comparison of Allometric Scaling Patterns for Estimating Coronary Flow. 2023, October 23-26, San Francisco, CA, USA 
+
+For your convenience, you may use the following BibTex entry:
+
+```bibtex
+@article{Azarnoosh2023,
+  title    = {Comparison of Allometric Scaling Patterns for Estimating Coronary Flow},
+  journal  = {Journal of the American College of Cardiology},
+  volume   = {82},
+  pages    = {B286-B286},
+  year     = {2023},
+  url      = {https://www.jacc.org/doi/abs/10.1016/j.jacc.2023.09.723},
+  author   = {Jamasp Azarnoosh, David Molony, Keyana Komilian, Lilia Soriano, Alexander Dornback, Sahar Jalal, Benjamin Lee, Simon Dunham, Fay Lin, and Habib Samady},
+}
+
+```
