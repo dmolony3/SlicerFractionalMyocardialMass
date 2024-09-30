@@ -19,8 +19,8 @@ class FMM(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = "FractionalMyocardialMass"
-        self.parent.categories = ["Cardiac"]
+        self.parent.title = "Fractional Myocardial Mass"
+        self.parent.categories = ["Quantification"]
         self.parent.dependencies = []
         self.parent.contributors = ["David Molony (NGHS)"]  #
         self.parent.helpText = """
@@ -31,7 +31,101 @@ This module computes the fractional myocardial mass for an input myocardial volu
 This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
 and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
 """
+def downloadSampleDataInFolder(source):
+    sampleDataLogic = slicer.modules.sampledata.widgetRepresentation().self().logic
+    # Retrieve directory
+    category = "Heart"
+    savedDirectory = slicer.app.userSettings().value(
+          "SampleData/Last%sDownloadDirectory" % category,
+          qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation))
 
+    destFolderPath = str(qt.QFileDialog.getExistingDirectory(slicer.util.mainWindow(), 'Destination Folder', savedDirectory))
+    if not os.path.isdir(destFolderPath):
+      return
+    print('Selected data folder: %s' % destFolderPath)
+    for uri, fileName  in zip(source.uris, source.fileNames):
+      sampleDataLogic.downloadFile(uri, destFolderPath, fileName)
+
+    # Save directory
+    slicer.app.userSettings().setValue("SampleData/Last%sDownloadDirectory" % category, destFolderPath)
+    filepath=destFolderPath+"/setup.py"
+    if (os.path.exists(filepath)):
+      spec = importlib.util.spec_from_file_location("setup",filepath)
+      setup = importlib.util.module_from_spec(spec)
+      spec.loader.exec_module(setup)
+      setup.setup()
+      
+def registerSampleData():
+    """
+    Add data sets to Sample Data module.
+    """
+    # It is always recommended to provide sample data for users to make it easy to try the module,
+    # but if no sample data is available then this method (and associated startupCompeted signal connection) can be removed.
+
+    import SampleData
+    iconsPath = os.path.join(os.path.dirname(__file__), 'Resources/Icons')
+
+    # To ensure that the source code repository remains small (can be downloaded and installed quickly)
+    # it is recommended to store data sets that are larger than a few MB in a Github release.
+
+    
+    # load demo data
+    
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='RCA',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/RCA.mrk.json',
+        fileNames='RCA.mrk.json',
+        nodeNames='RCA',
+        checksums=None,
+        loadFiles=True,
+        loadFileType='MarkupsFile',
+        customDownloader=downloadSampleDataInFolder
+        )
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='RCA_surface',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/RCA_surface.vtp',
+        fileNames='RCA_surface.vtp',
+        nodeNames='RCA_surface',
+        loadFileType='ModelFile',
+        )
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='LCA',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/LCA.mrk.json',
+        fileNames='LCA.mrk.json',
+        nodeNames='LCA',
+        checksums=None,
+        loadFiles=True,
+        loadFileType='MarkupsFile',
+        customDownloader=downloadSampleDataInFolder
+        )
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='LCA_surface',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/LCA_surface.vtp',
+        fileNames='LCA_surface.vtp',
+        nodeNames='LCA_surface',
+        loadFileType='ModelFile',
+        )
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='myocardium_surface',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/myocardium_surface.stl',
+        fileNames='myocardium_surface.stl',
+        nodeNames='myocardium_surface',
+        loadFileType='ModelFile',
+        )
+    SampleData.SampleDataLogic.registerCustomSampleDataSource(
+        category="Heart",
+        sampleName='myocardium_volume',
+        uris='https://github.com/dmolony3/SlicerFractionalMyocardialMass/releases/download/SampleData/myocardium_volume.vtu',
+        fileNames='myocardium_volume.vtu',
+        nodeNames='myocardium_volume',
+        loadFileType='ModelFile',
+        )
+        
 #
 # FMMWidget
 #
@@ -357,7 +451,6 @@ class FMMLogic(ScriptedLoadableModuleLogic):
 
         for i in range(polydata.GetNumberOfPoints()):
             currentGroupId = int(polydata.GetPointData().GetArray(0).GetTuple(i)[0])
-            #print(currentGroupId)
             if currentGroupId in childIds:
                 if currentGroupId == groupId:
                     if i >= pointId:
@@ -377,6 +470,7 @@ class FMMLogic(ScriptedLoadableModuleLogic):
         """
         Assign pointdata to each mesh point using voronoi algorithm
         """
+
         kernel = vtk.vtkVoronoiKernel()
 
         nullValue = 0.0
@@ -443,10 +537,11 @@ class FMMLogic(ScriptedLoadableModuleLogic):
             polydata = self.addMMARArray(polydata, childDict, pointId, groupId)
 
         outputMesh = self.voronoi(inputModel, polydata)
-
+        outputModel.SetAndObserveMesh(outputMesh)
 
         # TODO Allow polydata input containing Radius array and return minDiameterCol
         # TODO Allow surface model input and calculate volume/mass for each section
+        # TODO Allow option to split the volume into individual meshes for each segment
 
         num_arrays = outputMesh.GetPointData().GetNumberOfArrays()
         groupIdArray = [i for i in range(num_arrays) if outputMesh.GetPointData().GetArrayName(i) == 'Ids'][0]
@@ -473,9 +568,9 @@ class FMMLogic(ScriptedLoadableModuleLogic):
                 volCol.InsertNextTuple([0.0],)
 
         outputTable.AddColumn(labelCol)
-        outputTable.AddColumn(groupCol)
         outputTable.AddColumn(volCol)
         outputTable.AddColumn(lengthCol)
+        outputTable.AddColumn(groupCol)
 
         if inputMMARMarkup is not None:
             MMARArray = [i for i in range(num_arrays) if outputMesh.GetPointData().GetArrayName(i) == 'MMAR'][0]
@@ -490,4 +585,93 @@ class FMMLogic(ScriptedLoadableModuleLogic):
             MMARTableNode.AddColumn(labelCol1)
             MMARTableNode.AddColumn(volCol1)
 
-        return outputTable, outputMesh
+        
+#
+# FMMTest
+#
+
+class FMMTest(ScriptedLoadableModuleTest):
+    """
+    This is the test case for your scripted module.
+    Uses ScriptedLoadableModuleTest base class, available at:
+    https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
+    """
+
+    def setUp(self):
+        """ Do whatever is needed to reset the state - typically a scene clear will be enough.
+        """
+        slicer.mrmlScene.Clear()
+
+    def runTest(self):
+        """Run as few or as many tests as needed here.
+        """
+        self.setUp()
+        self.test_FMM()
+
+    def test_FMM(self):
+
+        import SampleData
+        import ExtractCenterline
+        
+        registerSampleData()
+        #downloadSampleDataInFolder()
+        RCA = SampleData.downloadSample('RCA')
+        self.delayDisplay('Loaded RCA markup')
+        LCA = SampleData.downloadSample('LCA')
+        self.delayDisplay('Loaded LCA markup')  
+        RCA_surface = SampleData.downloadSample('RCA_surface')
+        self.delayDisplay('Loaded RCA surface')
+        LCA_surface = SampleData.downloadSample('LCA_surface')
+        self.delayDisplay('Loaded LCA surface')
+        myocardium_surface = SampleData.downloadSample('myocardium_surface')
+        self.delayDisplay('Loaded myocardium surface')
+        myocardium_volume = SampleData.downloadSample('myocardium_volume')
+        self.delayDisplay('Loaded myocardium volume')
+        
+        curveSamplingDistance = 0.5
+        clLogic = ExtractCenterline.ExtractCenterlineLogic()
+        
+        RCA_centerlinePolyData, voronoiDiagramPolyData = clLogic.extractCenterline(RCA_surface.GetPolyData(), RCA, curveSamplingDistance)
+        LCA_centerlinePolyData, voronoiDiagramPolyData = clLogic.extractCenterline(LCA_surface.GetPolyData(), LCA, curveSamplingDistance)
+        
+        RCA_curve = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsCurveNode", "RCA_centerline")
+        LCA_curve = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsCurveNode", "LCA_centerline")
+        
+        clLogic.createCurveTreeFromCenterline(RCA_centerlinePolyData,  RCA_curve)       
+        clLogic.createCurveTreeFromCenterline(LCA_centerlinePolyData,  LCA_curve)       
+        
+        outputTable = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode', 'FMM')
+        outputMesh = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLModelNode', 'Myocardium')
+        
+        logic = FMMLogic()
+
+        inputMMARMarkup = None
+        self.delayDisplay('Processing starts.')
+        logic.segmentMesh(myocardium_volume, LCA_curve, RCA_curve, inputMMARMarkup, outputTable, outputMesh) # 3D
+
+        outputMesh.CreateDefaultDisplayNodes()
+        outputMesh.GetDisplayNode().SetVisibility3D(1)
+        outputMesh.GetDisplayNode().SetScalarVisibility(1)
+        outputMesh.GetDisplayNode().SetActiveScalarName('Ids')
+        
+        myocardium_surface.GetDisplayNode().SetVisibility3D(0)
+        myocardium_volume.GetDisplayNode().SetVisibility3D(0)
+        RCA.SetDisplayVisibility(0)
+        LCA.SetDisplayVisibility(0)
+        
+        # add table to the scene and center the 3D view
+        layoutManager = slicer.app.layoutManager()
+        layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayout3DTableView)
+        
+        tableWidget = layoutManager.tableWidget(0)
+        tableView = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableViewNode')
+        tableView.SetTableNodeID(outputTable.GetID())
+        tableWidget.setMRMLTableViewNode(tableView)
+
+        threeDWidget = layoutManager.threeDWidget(0)
+        threeDView = threeDWidget.threeDView()
+        threeDView.resetFocalPoint()
+
+        self.delayDisplay('Processing ends.')
+
+        self.delayDisplay('Test passed')
