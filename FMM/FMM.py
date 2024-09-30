@@ -21,7 +21,7 @@ class FMM(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = "Fractional Myocardial Mass"
         self.parent.categories = ["Quantification"]
-        self.parent.dependencies = []
+        self.parent.dependencies = ["SlicerVMTK"]
         self.parent.contributors = ["David Molony (NGHS)"]  #
         self.parent.helpText = """
 This module computes the fractional myocardial mass for an input myocardial volume mesh.
